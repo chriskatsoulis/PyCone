@@ -1,9 +1,13 @@
-# PyCone.py
-
 import discord
+import openai
 
-intents = discord.Intents.all()
-client = discord.Client(command_prefix='!', intents=intents)
+intents = discord.Intents.default()
+intents.message_content = True
+
+token = 'MTEwODY5MTcxNjA2MTUyODI0Nw.GYj7vK.qmVaEu4O-dKlkA059UduMXxbXZES0JsvyHNe1Q'
+openai.api_key = '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'
+
+client = discord.Client(intents=intents)
 
 
 @client.event
@@ -13,11 +17,26 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author == client.user:
+    username = str(message.author).split('#')[0]
+    user_message = str(message.content)
+    channel = str(message.channel.name)
+
+    print(username + " said " + user_message.lower() + " in " + channel)
+
+    if message.channel.name == client.user:
         return
 
-    if message.content.startswith('Hi'):
-        await message.channel.send('Hello!')
+    if message.channel.name == 'development':
+        response = openai.Completion.create(
+                model="text-davinci-003",
+                prompt=user_message,
+                max_tokens=3000,
+                temperature=0.7
+            )
 
+        output = response["choices"][0]["text"]
 
-client.run('MTEwODY5MTcxNjA2MTUyODI0Nw.GnB-Wc.fyONROu38QXsrx-YE_iF0RSgWid9E9KIZjw8FA')
+        print(output)
+        await message.channel.send(output)
+
+client.run(token)
